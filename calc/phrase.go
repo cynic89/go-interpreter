@@ -1,7 +1,5 @@
 package calc
 
-import "fmt"
-
 type Phrase interface {
 	eval() Result
 }
@@ -11,20 +9,24 @@ type Result struct {
 }
 
 type ArithmeticPhrase struct {
-	left  int
-	right int
-	op    string
+	tokens []Token
 }
 
 func (a ArithmeticPhrase) eval() Result {
-	fmt.Println(a)
-	if a.op == "+" {
-		return Result{a.left + a.right}
-	}
+	var result int
+	for i, token := range a.tokens {
 
-	if a.op == "-" {
-		return Result{a.left - a.right}
-	}
+		if i == 0 {
+			result = a.tokens[i].value.(int)
+		}
 
-	return Result{}
+		if token.kind == PLUS {
+			result = result + a.tokens[i+1].value.(int)
+		}
+
+		if token.kind == MINUS {
+			result = result - a.tokens[i+1].value.(int)
+		}
+	}
+	return Result{result}
 }

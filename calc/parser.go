@@ -12,34 +12,44 @@ func NewParser(l *Lexer) Parser {
 }
 
 func (p *Parser) Parse() (Phrase, error) {
-	left, err := p.lexer.NextToken()
+
+	var tokens []Token
+
+	token, err := p.lexer.NextToken()
 	if err != nil {
 		return nil, err
 	}
-	p.currentToken = left
+
+	p.currentToken = token
+	tokens = append(tokens, p.currentToken)
 
 	err = p.eat(INTEGER)
 	if err != nil {
 		return nil, err
 	}
 
-	op := p.currentToken
-	if op.kind == PLUS {
-		err = p.eat(PLUS)
-	} else {
-		err = p.eat(MINUS)
-	}
-	if err != nil {
-		return nil, err
+	for p.currentToken.kind != EOF {
+		tokens = append(tokens, p.currentToken)
+		op := p.currentToken
+		if op.kind == PLUS {
+			err = p.eat(PLUS)
+		} else {
+			err = p.eat(MINUS)
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		tokens = append(tokens, p.currentToken)
+		err = p.eat(INTEGER)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	right := p.currentToken
-	err = p.eat(INTEGER)
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println(tokens)
 
-	return ArithmeticPhrase{left.value.(int), right.value.(int), op.value.(string)}, nil
+	return ArithmeticPhrase{tokens: tokens}, nil
 
 }
 

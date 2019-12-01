@@ -18,25 +18,21 @@ func (lexer *Lexer) NextToken() (Token, error) {
 	if lexer.reachedEnd() {
 		return Eof(), nil
 	}
-
-	currentChar := lexer.currentChar()
-
-	switch {
-	case currentChar == " ":
-		lexer.advance()
-		lexer.NextToken()
-	case currentChar == "+":
+	if " " == lexer.currentChar() {
+		lexer.ignoreWhitespace()
+	}
+	if "+" == lexer.currentChar() {
 		lexer.advance()
 		return Plus(), nil
-	case currentChar == "-":
+	}
+	if "-" == lexer.currentChar() {
 		lexer.advance()
 		return Minus(), nil
-	case isDigit(currentChar):
-		return lexer.getIntegerToken()
-	default:
-		return Token{}, fmt.Errorf("Unexpected Character %s", currentChar)
 	}
-	return Token{}, fmt.Errorf("Unknown error")
+	if isDigit(lexer.currentChar()) {
+		return lexer.getIntegerToken()
+	}
+	return Token{}, fmt.Errorf("Unexpected Character %s", lexer.currentChar())
 }
 
 func (lexer *Lexer) currentChar() string {
@@ -49,6 +45,12 @@ func (lexer *Lexer) reachedEnd() bool {
 
 func (lexer *Lexer) advance() {
 	lexer.pos++
+}
+
+func (lexer *Lexer) ignoreWhitespace() {
+	for lexer.currentChar() == " " {
+		lexer.advance()
+	}
 }
 
 func (lexer *Lexer) getIntegerToken() (Token, error) {
