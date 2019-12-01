@@ -28,29 +28,46 @@ func (p *Parser) Parse() (Phrase, error) {
 		return nil, err
 	}
 
-	for p.currentToken.kind != EOF {
-		tokens = append(tokens, p.currentToken)
-		op := p.currentToken
-		if op.kind == PLUS {
-			err = p.eat(PLUS)
-		} else {
-			err = p.eat(MINUS)
-		}
-		if err != nil {
-			return nil, err
-		}
+	tSeq, err := p.parseSequence()
+	if err != nil {
+		return nil, err
+	}
+	tokens = append(tokens, tSeq...)
 
-		tokens = append(tokens, p.currentToken)
-		err = p.eat(INTEGER)
+	for p.currentToken.kind != EOF {
+		tSeq, err := p.parseSequence()
 		if err != nil {
 			return nil, err
 		}
+		tokens = append(tokens, tSeq...)
 	}
 
 	fmt.Println(tokens)
 
 	return ArithmeticPhrase{tokens: tokens}, nil
 
+}
+
+func (p *Parser) parseSequence() (tokens []Token, err error) {
+	tokens = append(tokens, p.currentToken)
+
+	op := p.currentToken
+	if op.kind == PLUS {
+		err = p.eat(PLUS)
+	} else {
+		err = p.eat(MINUS)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	tokens = append(tokens, p.currentToken)
+	err = p.eat(INTEGER)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokens, err
 }
 
 func (p *Parser) eat(tokenType TokenType) error {
