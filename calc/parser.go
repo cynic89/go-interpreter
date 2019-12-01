@@ -1,101 +1,57 @@
 package calc
 
-import (
-	"fmt"
-	"strconv"
-)
+import "fmt"
 
 type Parser struct {
-	expr expr
-	pos  int
+	lexer        *Lexer
+	currentToken Token
 }
 
-type expr string
-
-func NewParser(e string) Parser {
-	return Parser{expr(e), 0}
+func NewParser(l *Lexer) Parser {
+	return Parser{lexer: l}
 }
 
-func (p *Parser) Parse() ([]Token, error) {
-	var tokens []Token
-	for !p.reachedEnd() {
-		token, err := p.NextToken()
+func (p *Parser) Parse() (Phrase, error) {
+	left, err := p.lexer.NextToken()
+	if err != nil {
+		return nil, err
+	}
+	p.currentToken = left
+
+	err = p.eat(INTEGER)
+	if err != nil {
+		return nil, err
+	}
+
+	op := p.currentToken
+	if op.kind == PLUS {
+		err = p.eat(PLUS)
+	} else {
+		err = p.eat(MINUS)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	right := p.currentToken
+	err = p.eat(INTEGER)
+	if err != nil {
+		return nil, err
+	}
+
+	return ArithmeticPhrase{left.value.(int), right.value.(int), op.value.(string)}, nil
+
+}
+
+func (p *Parser) eat(tokenType TokenType) error {
+	if p.currentToken.kind == tokenType {
+		token, err := p.lexer.NextToken()
 		if err != nil {
-			return nil, err
+			return err
 		}
-
-		tokens = append(tokens, token)
+		p.currentToken = token
+		return nil
 	}
 
-	return tokens, nil
-}
-
-func (p *Parser) NextToken() (token Token, error error) {
-	defer func() {
-		p.pos++
-
-		if error == nil{
-			if token.kind == INTEGER {
-				nt, ne := p.NextToken()
-				if ne != nil {
-					error = ne
-					return
-				}
-
-				if nt.kind != INTEGER {
-					p.pos--
-					return
-				}
-
-				token.value = token.value + nt.value
-			}
-
-			if token.kind == WHITESPACE {
-				nt, ne := p.NextToken()
-				if ne != nil {
-					error = ne
-					return
-				}
-				token = nt
-			}
-		}
-
-	}()
-
-	if p.pos == len(p.expr) {
-		token = Eof()
-		return
-	}
-
-	char := p.expr.nextChar(p.pos)
-
-	if _, err := strconv.Atoi(char); err == nil {
-		token = NewToken(INTEGER, char)
-		return
-	}
-
-	if "+" == char {
-		token = Plus()
-		return
-	}
-
-	if " " == char {
-		token = Whitespace()
-		return
-	}
-
-	error = fmt.Errorf("Unexpected Token %s", char)
-	return
-
-}
-
-func (p *Parser) reachedEnd() bool {
-	if p.pos == len(p.expr) {
-		return true
-	}
-	return false
-}
-
-func (e expr) nextChar(pos int) string {
-	return string(e[pos : pos+1])
+	return fmt.Errorf("Token types do not match %s != %s", p.currentToken.kind, tokenType)
 }

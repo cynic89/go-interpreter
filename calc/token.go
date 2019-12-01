@@ -1,46 +1,38 @@
 package calc
 
-import "strconv"
-
 type Token struct {
-	kind TokenType
+	kind  TokenType
 	value TokenVal
 }
 
-type TokenVal string
+type TokenVal interface{}
 type TokenType string
 
 const (
-	INTEGER TokenType = "Integer"
-	PLUS TokenType = "Plus"
-	EOF TokenType = "EOF"
+	INTEGER    TokenType = "Integer"
+	PLUS       TokenType = "Plus"
+	MINUS      TokenType = "Minus"
+	EOF        TokenType = "EOF"
 	WHITESPACE TokenType = "Whitespace"
-
-	NONE TokenVal = ""
 )
 
-func NewToken(kind TokenType, val string) Token  {
+func NewToken(kind TokenType, val interface{}) Token {
 	return Token{kind, TokenVal(val)}
 }
 
-func Eof() Token{
-	return Token {EOF, NONE}
+func Eof() Token {
+	return Token{EOF, nil}
 }
 
-func Plus() Token{
+func Plus() Token {
 	return Token{PLUS, "+"}
 }
 
-func Whitespace() Token{
+func Minus() Token {
+	return Token{MINUS, "-"}
+}
+
+func Whitespace() Token {
 	return Token{WHITESPACE, " "}
 }
 
-
-func (t Token) GetValue() interface{}  {
-	if t.kind == INTEGER {
-		if v, err := strconv.Atoi(string(t.value)); err == nil{
-			return v
-		}
-	}
-	return t.value
-}
