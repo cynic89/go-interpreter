@@ -20,11 +20,11 @@ func (a ArithmeticPhrase) eval() Result {
 			result = a.tokens[i].value.(int)
 		}
 
-		if token.kind == PLUS {
+		if token.kind == ADD {
 			result = result + a.tokens[i+1].value.(int)
 		}
 
-		if token.kind == MINUS {
+		if token.kind == SUB {
 			result = result - a.tokens[i+1].value.(int)
 		}
 	}

@@ -10,8 +10,10 @@ type TokenType string
 
 const (
 	INTEGER    TokenType = "Integer"
-	PLUS       TokenType = "Plus"
-	MINUS      TokenType = "Minus"
+	ADD        TokenType = "Plus"
+	SUB        TokenType = "Minus"
+	MUL        TokenType = "Multiply"
+	DIV        TokenType = "Divide"
 	EOF        TokenType = "EOF"
 	WHITESPACE TokenType = "Whitespace"
 )
@@ -25,14 +27,17 @@ func Eof() Token {
 }
 
 func Plus() Token {
-	return Token{PLUS, "+"}
+	return Token{ADD, "+"}
 }
 
 func Minus() Token {
-	return Token{MINUS, "-"}
+	return Token{SUB, "-"}
 }
 
-func Whitespace() Token {
-	return Token{WHITESPACE, " "}
+func Mul() Token {
+	return Token{MUL, "*"}
 }
 
+func Div() Token {
+	return Token{DIV, "/"}
+}

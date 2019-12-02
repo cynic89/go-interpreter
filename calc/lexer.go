@@ -29,10 +29,18 @@ func (lexer *Lexer) NextToken() (Token, error) {
 		lexer.advance()
 		return Minus(), nil
 	}
+	if "*" == lexer.currentChar() {
+		lexer.advance()
+		return Mul(), nil
+	}
+	if "/" == lexer.currentChar() {
+		lexer.advance()
+		return Div(), nil
+	}
 	if isDigit(lexer.currentChar()) {
 		return lexer.getIntegerToken()
 	}
-	return Token{}, fmt.Errorf("Unexpected Character %s", lexer.currentChar())
+	return Token{}, fmt.Errorf("Lexer Error: Unparseable character %s", lexer.currentChar())
 }
 
 func (lexer *Lexer) currentChar() string {

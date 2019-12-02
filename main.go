@@ -13,7 +13,11 @@ func main() {
 	fmt.Print("calc>")
 	text, _ := reader.ReadString('\n')
 	lexer := calc.NewLexer(text)
-	parser := calc.NewParser(&lexer)
+	parser, err := calc.NewParser(&lexer)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 	interpreter := calc.NewInterpreter(&parser)
 
 	result, err := interpreter.Eval()

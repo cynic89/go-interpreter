@@ -9,11 +9,10 @@ func NewInterpreter(p *Parser) Interpreter {
 }
 
 func (i Interpreter) Eval() (Result, error) {
-	phrase, err := i.parser.Parse()
+	result, err := i.parser.expr()
 	if err != nil {
 		return Result{}, err
 	}
 
-	result := phrase.eval()
-	return result, nil
+	return Result{result}, nil
 }

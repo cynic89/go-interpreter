@@ -1,73 +1,117 @@
 package calc
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Parser struct {
 	lexer        *Lexer
 	currentToken Token
 }
 
-func NewParser(l *Lexer) Parser {
-	return Parser{lexer: l}
+func NewParser(l *Lexer) (Parser, error) {
+	token, err := l.NextToken()
+	if err != nil {
+		return Parser{}, err
+	}
+	return Parser{lexer: l, currentToken: token}, nil
 }
 
-func (p *Parser) Parse() (Phrase, error) {
+/*
 
-	var tokens []Token
+grammar
 
-	token, err := p.lexer.NextToken()
+expr: term ( (ADD | SUB) term)*
+term: factor ( (MUL | DIV) factor )*
+factor: INTEGER
+
+*/
+
+// factor: INTEGER
+func (p *Parser) factor() (int, error) {
+	intVal, _ := p.currentToken.value.(int)
+	err := p.eat(INTEGER)
 	if err != nil {
-		return nil, err
+		return -1, err
+	}
+	return intVal, nil
+
+}
+
+// term: factor ( (MUL | DIV) factor )*
+func (p *Parser) term() (int, error) {
+	result, err := p.factor()
+	if err != nil {
+		return -1, err
 	}
 
-	p.currentToken = token
-	tokens = append(tokens, p.currentToken)
+	for p.currentToken.kind == MUL || p.currentToken.kind == DIV {
+		if p.currentToken.kind == MUL {
+			err := p.eat(MUL)
+			if err != nil {
+				return -1, err
+			}
 
-	err = p.eat(INTEGER)
-	if err != nil {
-		return nil, err
-	}
+			operand, err := p.factor()
+			if err != nil {
+				return -1, err
+			}
 
-	tSeq, err := p.parseSequence()
-	if err != nil {
-		return nil, err
-	}
-	tokens = append(tokens, tSeq...)
+			result = result * operand
+		} else if p.currentToken.kind == DIV {
+			err := p.eat(DIV)
+			if err != nil {
+				return -1, err
+			}
 
-	for p.currentToken.kind != EOF {
-		tSeq, err := p.parseSequence()
-		if err != nil {
-			return nil, err
+			operand, err := p.factor()
+			if err != nil {
+				return -1, err
+			}
+
+			result = result / operand
 		}
-		tokens = append(tokens, tSeq...)
 	}
 
-	fmt.Println(tokens)
-
-	return ArithmeticPhrase{tokens: tokens}, nil
-
+	return result, nil
 }
 
-func (p *Parser) parseSequence() (tokens []Token, err error) {
-	tokens = append(tokens, p.currentToken)
-
-	op := p.currentToken
-	if op.kind == PLUS {
-		err = p.eat(PLUS)
-	} else {
-		err = p.eat(MINUS)
-	}
+// expr: term ( (ADD | SUB) term)*
+func (p *Parser) expr() (int, error) {
+	result, err := p.term()
 	if err != nil {
-		return nil, err
+		return -1, err
 	}
 
-	tokens = append(tokens, p.currentToken)
-	err = p.eat(INTEGER)
-	if err != nil {
-		return nil, err
+	for p.currentToken.kind == ADD || p.currentToken.kind == SUB {
+		if p.currentToken.kind == ADD {
+			err := p.eat(ADD)
+			if err != nil {
+				return -1, err
+			}
+
+			operand, err := p.term()
+			if err != nil {
+				return -1, err
+			}
+
+			result = result + operand
+		} else if p.currentToken.kind == SUB {
+			err := p.eat(SUB)
+			if err != nil {
+				return -1, err
+			}
+
+			operand, err := p.term()
+			if err != nil {
+				return -1, err
+			}
+
+			result = result - operand
+		}
 	}
 
-	return tokens, err
+	return result, nil
 }
 
 func (p *Parser) eat(tokenType TokenType) error {
@@ -80,5 +124,5 @@ func (p *Parser) eat(tokenType TokenType) error {
 		return nil
 	}
 
-	return fmt.Errorf("Token types do not match %s != %s", p.currentToken.kind, tokenType)
+	return fmt.Errorf("Syntax Error: invalid syntax: `%s` , Expected `%s`", p.currentToken.kind, tokenType)
 }
