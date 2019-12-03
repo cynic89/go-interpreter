@@ -37,6 +37,14 @@ func (lexer *Lexer) NextToken() (Token, error) {
 		lexer.advance()
 		return Div(), nil
 	}
+	if "(" == lexer.currentChar() {
+		lexer.advance()
+		return LParen(), nil
+	}
+	if ")" == lexer.currentChar() {
+		lexer.advance()
+		return RParen(), nil
+	}
 	if isDigit(lexer.currentChar()) {
 		return lexer.getIntegerToken()
 	}

@@ -23,18 +23,37 @@ grammar
 
 expr: term ( (ADD | SUB) term)*
 term: factor ( (MUL | DIV) factor )*
-factor: INTEGER
+factor: INTEGER | ( LPAREN expr RPAREN )
 
 */
 
 // factor: INTEGER
 func (p *Parser) factor() (int, error) {
-	intVal, _ := p.currentToken.value.(int)
-	err := p.eat(INTEGER)
-	if err != nil {
-		return -1, err
+	if p.currentToken.kind == INTEGER {
+		intVal, _ := p.currentToken.value.(int)
+		err := p.eat(INTEGER)
+		if err != nil {
+			return -1, err
+		}
+		return intVal, nil
+	} else {
+		err := p.eat(LPAREN)
+		if err != nil {
+			return -1, err
+		}
+
+		exprVal, err := p.expr()
+		if err != nil {
+			return -1, err
+		}
+
+		err = p.eat(RPAREN)
+		if err != nil {
+			return -1, err
+		}
+
+		return exprVal, nil
 	}
-	return intVal, nil
 
 }
 

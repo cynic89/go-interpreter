@@ -9,13 +9,14 @@ type TokenVal interface{}
 type TokenType string
 
 const (
-	INTEGER    TokenType = "Integer"
-	ADD        TokenType = "Plus"
-	SUB        TokenType = "Minus"
-	MUL        TokenType = "Multiply"
-	DIV        TokenType = "Divide"
-	EOF        TokenType = "EOF"
-	WHITESPACE TokenType = "Whitespace"
+	INTEGER TokenType = "Integer"
+	ADD     TokenType = "Plus"
+	SUB     TokenType = "Minus"
+	MUL     TokenType = "Multiply"
+	DIV     TokenType = "Divide"
+	EOF     TokenType = "End_Of_File"
+	LPAREN  TokenType = "Left_Parentheses"
+	RPAREN  TokenType = "Right_Parentheses"
 )
 
 func NewToken(kind TokenType, val interface{}) Token {
@@ -40,4 +41,12 @@ func Mul() Token {
 
 func Div() Token {
 	return Token{DIV, "/"}
+}
+
+func LParen() Token {
+	return Token{LPAREN, "("}
+}
+
+func RParen() Token {
+	return Token{RPAREN, ")"}
 }
