@@ -18,9 +18,30 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	interpreter := calc.NewInterpreter(&parser)
+	ast, err := parser.Expr()
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
 
-	result, err := interpreter.Eval()
+	var result interface{}
+	result, err = calc.Calculator{}.Eval(ast)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println(result)
+
+	result, err = calc.ReversePolish{}.Eval(ast)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	fmt.Println(result)
+
+	result, err = calc.Lisp{}.Eval(ast)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

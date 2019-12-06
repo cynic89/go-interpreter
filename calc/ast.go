@@ -3,12 +3,12 @@ package calc
 import "fmt"
 
 type Visitor interface {
-	VisitBinaryOp(b BinaryOp) int
-	VisitNum(n Num) int
+	VisitBinaryOp(b BinaryOp) interface{}
+	VisitNum(n Num) interface{}
 }
 
 type AST interface {
-	Accept(visitor Visitor) int
+	Accept(visitor Visitor) interface{}
 }
 
 type Num struct {
@@ -26,15 +26,15 @@ type GenericNode struct {
 
 type Op string
 
-func (binaryOp BinaryOp) Accept(visitor Visitor) int {
+func (binaryOp BinaryOp) Accept(visitor Visitor) interface{} {
 	return visitor.VisitBinaryOp(binaryOp)
 }
 
-func (num Num) Accept(visitor Visitor) int {
+func (num Num) Accept(visitor Visitor) interface{} {
 	return visitor.VisitNum(num)
 }
 
-func (node GenericNode) Accept(visitor Visitor) int {
+func (node GenericNode) Accept(visitor Visitor) interface{} {
 	fmt.Println("Do Nothing")
-	return -1
+	return "This should not be printed ever"
 }

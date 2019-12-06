@@ -42,7 +42,7 @@ func (p *Parser) factor() (AST, error) {
 			return GenericNode{}, err
 		}
 
-		exprVal, err := p.expr()
+		exprVal, err := p.Expr()
 		if err != nil {
 			return GenericNode{}, err
 		}
@@ -82,7 +82,7 @@ func (p *Parser) term() (AST, error) {
 }
 
 // expr: term ( (ADD | SUB) term)*
-func (p *Parser) expr() (AST, error) {
+func (p *Parser) Expr() (AST, error) {
 	expr, err := p.term()
 	if err != nil {
 		return GenericNode{}, err

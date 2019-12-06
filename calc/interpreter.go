@@ -2,39 +2,81 @@ package calc
 
 import "fmt"
 
-type Interpreter struct {
-	parser *Parser
+type Interpreter interface {
+	Eval(ast AST) interface{}
 }
 
-func NewInterpreter(p *Parser) Interpreter {
-	return Interpreter{parser: p}
+type Calculator struct {
 }
 
-func (i Interpreter) Eval() (Result, error) {
-	ast, err := i.parser.expr()
-	fmt.Println(ast)
-	if err != nil {
-		return Result{}, err
-	}
-	result := ast.Accept(i)
-
-	return Result{result}, nil
+func (c Calculator) Eval(ast AST) (int, error) {
+	return ast.Accept(c).(int), nil
 }
 
-func (i Interpreter) VisitBinaryOp(b BinaryOp) int {
+func (c Calculator) VisitBinaryOp(b BinaryOp) interface{} {
 	switch b.op {
 	case "+":
-		return b.left.Accept(i) + b.right.Accept(i)
+		return b.left.Accept(c).(int) + b.right.Accept(c).(int)
 	case "-":
-		return b.left.Accept(i) - b.right.Accept(i)
+		return b.left.Accept(c).(int) - b.right.Accept(c).(int)
 	case "*":
-		return b.left.Accept(i) * b.right.Accept(i)
+		return b.left.Accept(c).(int) * b.right.Accept(c).(int)
 	case "/":
-		return b.left.Accept(i) / b.right.Accept(i)
+		return b.left.Accept(c).(int) / b.right.Accept(c).(int)
 	}
 	panic("Unknown Op")
 }
 
-func (i Interpreter) VisitNum(num Num) int {
+func (c Calculator) VisitNum(num Num) interface{} {
 	return num.val
+}
+
+type ReversePolish struct {
+}
+
+func (r ReversePolish) Eval(ast AST) (string, error) {
+	return ast.Accept(r).(string), nil
+}
+
+func (r ReversePolish) VisitBinaryOp(b BinaryOp) interface{} {
+	switch b.op {
+	case "+":
+		return b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + " " + "+" + " "
+	case "-":
+		return b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + " " + "-" + " "
+	case "*":
+		return b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + " " + "*" + " "
+	case "/":
+		return b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + " " + "/" + " "
+	}
+	panic("Unknown Op")
+}
+
+func (r ReversePolish) VisitNum(num Num) interface{} {
+	return fmt.Sprintf("%d", num.val)
+}
+
+type Lisp struct {
+}
+
+func (r Lisp) Eval(ast AST) (string, error) {
+	return ast.Accept(r).(string), nil
+}
+
+func (r Lisp) VisitBinaryOp(b BinaryOp) interface{} {
+	switch b.op {
+	case "+":
+		return "(" + "+" + " " + b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + ")"
+	case "-":
+		return "(" + "-" + " " + b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + ")"
+	case "*":
+		return "(" + "*" + " " + b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + ")"
+	case "/":
+		return "(" + "/" + " " + b.left.Accept(r).(string) + " " + b.right.Accept(r).(string) + ")"
+	}
+	panic("Unknown Op")
+}
+
+func (l Lisp) VisitNum(num Num) interface{} {
+	return fmt.Sprintf("%d", num.val)
 }
