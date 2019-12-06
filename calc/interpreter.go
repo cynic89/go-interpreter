@@ -1,5 +1,7 @@
 package calc
 
+import "fmt"
+
 type Interpreter struct {
 	parser *Parser
 }
@@ -9,10 +11,30 @@ func NewInterpreter(p *Parser) Interpreter {
 }
 
 func (i Interpreter) Eval() (Result, error) {
-	result, err := i.parser.expr()
+	ast, err := i.parser.expr()
+	fmt.Println(ast)
 	if err != nil {
 		return Result{}, err
 	}
+	result := ast.Accept(i)
 
 	return Result{result}, nil
+}
+
+func (i Interpreter) VisitBinaryOp(b BinaryOp) int {
+	switch b.op {
+	case "+":
+		return b.left.Accept(i) + b.right.Accept(i)
+	case "-":
+		return b.left.Accept(i) - b.right.Accept(i)
+	case "*":
+		return b.left.Accept(i) * b.right.Accept(i)
+	case "/":
+		return b.left.Accept(i) / b.right.Accept(i)
+	}
+	panic("Unknown Op")
+}
+
+func (i Interpreter) VisitNum(num Num) int {
+	return num.val
 }

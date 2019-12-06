@@ -28,109 +28,82 @@ factor: INTEGER | ( LPAREN expr RPAREN )
 */
 
 // factor: INTEGER
-func (p *Parser) factor() (int, error) {
+func (p *Parser) factor() (AST, error) {
 	if p.currentToken.kind == INTEGER {
 		intVal, _ := p.currentToken.value.(int)
 		err := p.eat(INTEGER)
 		if err != nil {
-			return -1, err
+			return GenericNode{}, err
 		}
-		return intVal, nil
+		return Num{intVal}, nil
 	} else {
 		err := p.eat(LPAREN)
 		if err != nil {
-			return -1, err
+			return GenericNode{}, err
 		}
 
 		exprVal, err := p.expr()
 		if err != nil {
-			return -1, err
+			return GenericNode{}, err
 		}
 
 		err = p.eat(RPAREN)
 		if err != nil {
-			return -1, err
+			return GenericNode{}, err
 		}
 
 		return exprVal, nil
 	}
-
 }
 
 // term: factor ( (MUL | DIV) factor )*
-func (p *Parser) term() (int, error) {
-	result, err := p.factor()
+func (p *Parser) term() (AST, error) {
+	term, err := p.factor()
 	if err != nil {
-		return -1, err
+		return GenericNode{}, err
 	}
 
 	for p.currentToken.kind == MUL || p.currentToken.kind == DIV {
-		if p.currentToken.kind == MUL {
-			err := p.eat(MUL)
-			if err != nil {
-				return -1, err
-			}
-
-			operand, err := p.factor()
-			if err != nil {
-				return -1, err
-			}
-
-			result = result * operand
-		} else if p.currentToken.kind == DIV {
-			err := p.eat(DIV)
-			if err != nil {
-				return -1, err
-			}
-
-			operand, err := p.factor()
-			if err != nil {
-				return -1, err
-			}
-
-			result = result / operand
+		op := p.currentToken.value
+		err := p.eat(p.currentToken.kind)
+		if err != nil {
+			return GenericNode{}, err
 		}
+
+		right, err := p.factor()
+		if err != nil {
+			return GenericNode{}, err
+		}
+
+		term = BinaryOp{op: Op(op.(string)), left: term, right: right}
 	}
 
-	return result, nil
+	return term, nil
 }
 
 // expr: term ( (ADD | SUB) term)*
-func (p *Parser) expr() (int, error) {
-	result, err := p.term()
+func (p *Parser) expr() (AST, error) {
+	expr, err := p.term()
 	if err != nil {
-		return -1, err
+		return GenericNode{}, err
 	}
 
 	for p.currentToken.kind == ADD || p.currentToken.kind == SUB {
-		if p.currentToken.kind == ADD {
-			err := p.eat(ADD)
-			if err != nil {
-				return -1, err
-			}
-
-			operand, err := p.term()
-			if err != nil {
-				return -1, err
-			}
-
-			result = result + operand
-		} else if p.currentToken.kind == SUB {
-			err := p.eat(SUB)
-			if err != nil {
-				return -1, err
-			}
-
-			operand, err := p.term()
-			if err != nil {
-				return -1, err
-			}
-
-			result = result - operand
+		op := p.currentToken.value
+		err := p.eat(p.currentToken.kind)
+		if err != nil {
+			return GenericNode{}, err
 		}
+
+		right, err := p.term()
+		if err != nil {
+			return GenericNode{}, err
+		}
+
+		expr = BinaryOp{op: Op(op.(string)), left: expr, right: right}
 	}
 
-	return result, nil
+	return expr, nil
 }
 
 func (p *Parser) eat(tokenType TokenType) error {
